@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room with {{ other_user.username }}</title>
+</head>
+<body>
+    <h2>Chat Room with {{ other_user.username }}</h2>
+
+    <div id="chat-log" style="max-height: 400px; overflow-y: scroll;">
+        <!-- Display previously saved messages -->
+        {% for message in messages %}
+            <strong>{{ message.sender.username }}:</strong> {{ message.message }}<br>
+        {% endfor %}
+    </div> <!-- Display messages -->
+
+    <input id="chat-message-input" type="text" size="100" placeholder="Type a message...">
+    <button id="chat-message-submit">Send</button>
+
+    <script>
+        const roomName = "{{ other_user.username }}";  // Room is based on the username
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+        );
+
+        // Handle incoming messages from WebSocket
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+
+            // Append incoming message to the chat log
+            const chatLog = document.querySelector('#chat-log');
+            chatLog.innerHTML += '<strong>' + data.sender + ':</strong> ' + data.message + '<br>';
+            chatLog.scrollTop = chatLog.scrollHeight;  // Auto-scroll to the latest message
+        };
+
+        // Focus on the message input field when the page loads
+        document.querySelector('#chat-message-input').focus();
+
+        // Send the message when Enter is pressed
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // Enter key
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        // Send the message when the Send button is clicked
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+
+            // Send the message to WebSocket
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'receiver': roomName
+            }));
+
+            // Display the message in the chat log as sent by the logged-in user
+            const chatLog = document.querySelector('#chat-log');
+            chatLog.innerHTML += '<strong>You:</strong> ' + message + '<br>';
+            chatLog.scrollTop = chatLog.scrollHeight;  // Auto-scroll to the latest message
+
+            // Clear the input field after sending
+            messageInputDom.value = '';
+        };
+    </script>
+</body>
+</html>
+
+
+
+
+
