@@ -13,6 +13,49 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+    
+
+class FollowRequest(models.Model):
+    from_user = models.ForeignKey(CustomUser, related_name='sent_requests', on_delete=models.CASCADE)
+    to_user = models.ForeignKey(CustomUser, related_name='received_requests', on_delete=models.CASCADE)
+    status = models.CharField(
+        max_length=10,
+        choices=(("pending", "Pending"), ("accepted", "Accepted"), ("rejected", "Rejected")),
+        default="pending"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('from_user', 'to_user')  # Prevent duplicate requests
+
+class Follower(models.Model):
+    user = models.ForeignKey(CustomUser, related_name='followers', on_delete=models.CASCADE)
+    follower = models.ForeignKey(CustomUser, related_name='following', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'follower')  # Ensure a user can't follow another user multiple times
+
+
+class Post(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="posts")
+    video = models.FileField(upload_to="videos/")
+    caption = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s Post"  
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="comments")
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment by {self.user.username} on Post {self.post.id}"
+
 
 
 class Message(models.Model):

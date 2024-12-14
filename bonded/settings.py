@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from decouple import config
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -175,6 +176,11 @@ CORS_ALLOWED_ORIGINS = [
 
 AUTH_USER_MODEL = 'chat.CustomUser'
 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -188,3 +194,10 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 LOGIN_REDIRECT_URL='/'
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Set the desired lifetime
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh token lifetime
+    'ROTATE_REFRESH_TOKENS': False,              # Optional: Change if needed
+    'BLACKLIST_AFTER_ROTATION': True,            # Optional: Change if needed
+}
